@@ -94,7 +94,7 @@ public class Trader {
 			throw new StockMarketExpection("There is already an order for this stock.");
 		}
 		
-		// Check if trader owns the stock 
+		// Check if trader owns the stock    
 		if (orderType == OrderType.SELL 
 				&& OrderUtility.owns(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own the stock.");
