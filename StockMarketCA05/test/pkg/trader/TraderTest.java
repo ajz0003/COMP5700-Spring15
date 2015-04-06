@@ -41,12 +41,6 @@ public class TraderTest {
 		
     }
 	
-	@After
-    public void tearDown() {
-        
-
-    }
-	
 	@Test
 	public void testTraderInitialize() {
 		Trader trader = new Trader("Joe", 300.0);
