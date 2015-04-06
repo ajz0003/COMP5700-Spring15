@@ -74,7 +74,7 @@ public class Trader {
 		double orderPrice = price * volume;
 		
 		// Check if stock is more than cashInHand
-		if (orderPrice > cashInHand) {
+		if (orderType == OrderType.BUY && orderPrice > cashInHand) {
 			throw new StockMarketExpection("Trader does not have enough cash.");
 		}
 		
@@ -86,9 +86,6 @@ public class Trader {
 			theOrder = new SellOrder(symbol, volume, price, this);
 		}
 		
-		// Enter the order into the orderbook of the market
-		m.addOrder(theOrder);
-		
 		// Check if there is an outstanding order for stock
 		if (OrderUtility.isAlreadyPresent(ordersPlaced, theOrder)) {
 			throw new StockMarketExpection("There is already an order for this stock.");
@@ -96,7 +93,7 @@ public class Trader {
 		
 		// Check if trader owns the stock    
 		if (orderType == OrderType.SELL 
-				&& OrderUtility.owns(position, symbol)) {
+				&& !OrderUtility.owns(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own the stock.");
 		}
 		
@@ -105,6 +102,12 @@ public class Trader {
 				&& volume > OrderUtility.ownedQuantity(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own enough of the stock.");
 		}
+		
+		// Enter the order into the orderbook of the market
+		m.addOrder(theOrder);
+		
+		// Add the order to the orders placed 
+		this.ordersPlaced.add(theOrder);
 
 	}
 
@@ -162,7 +165,11 @@ public class Trader {
 		// based on the notification.
 		
 		// Update orderPlaced
-		if (ordersPlaced.remove(o) == false) {
+		//if (ordersPlaced.remove(o) == false) {
+		//	throw new StockMarketExpection("Order does not exist in ordersPlaced");
+		//}
+		
+		if (!OrderUtility.isAlreadyPresent(ordersPlaced, o)) {
 			throw new StockMarketExpection("Order does not exist in ordersPlaced");
 		}
 		
