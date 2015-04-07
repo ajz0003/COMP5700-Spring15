@@ -39,20 +39,19 @@ public class Trader {
 		// stock.
 		
 		// Get total stock price
-		double orderPrice = m.getStockForSymbol(symbol).getPrice() * volume;
+		double orderPrice = m.getStockForSymbol(symbol).getPrice();
 		
 		// Check if stock is more than cashInHand
-		if (orderPrice > cashInHand) {
+		if (orderPrice * volume > cashInHand) {
 			throw new StockMarketExpection("Trader does not have enough cash.");
 		}
 		
 		// Create the order
 		BuyOrder theOrder = new BuyOrder(symbol, volume, orderPrice, this);
 		
-		// Add the order to the trader's position
+		// Add the order to the trader's position and update cashInHand
 		position.add(theOrder);
-		
-		this.cashInHand -= orderPrice;
+		this.cashInHand -= orderPrice * volume;
 	}
 
 	public void placeNewOrder(Market m, String symbol, int volume,
@@ -71,15 +70,14 @@ public class Trader {
 		// exception in these cases.
 		
 		// Get total stock price
-		double orderPrice = price * volume;
+		double totalPrice = price * volume;
 		
 		// Check if stock is more than cashInHand
-		if (orderType == OrderType.BUY && orderPrice > cashInHand) {
+		if (orderType == OrderType.BUY && totalPrice > cashInHand) {
 			throw new StockMarketExpection("Trader does not have enough cash.");
 		}
 		
 		Order theOrder;
-		
 		if (orderType == OrderType.BUY) {
 			theOrder = new BuyOrder(symbol, volume, price, this);
 		} else {
@@ -91,13 +89,13 @@ public class Trader {
 			throw new StockMarketExpection("There is already an order for this stock.");
 		}
 		
-		// Check if trader owns the stock    
+		// Check if trader owns the stock if selling 
 		if (orderType == OrderType.SELL 
 				&& !OrderUtility.owns(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own the stock.");
 		}
 		
-		// Check if trader owns enough of the stock;
+		// Check if trader owns enough of the stock if selling
 		if (orderType == OrderType.SELL 
 				&& volume > OrderUtility.ownedQuantity(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own enough of the stock.");
@@ -108,7 +106,6 @@ public class Trader {
 		
 		// Add the order to the orders placed 
 		this.ordersPlaced.add(theOrder);
-
 	}
 
 	public void placeNewMarketOrder(Market m, String symbol, int volume,
@@ -116,41 +113,42 @@ public class Trader {
 		// Similar to the other method, except the order is a market order
 		
 		// Get total stock price
-		double orderPrice = m.getStockForSymbol(symbol).getPrice() * volume;
-				
+		double totalPrice = m.getStockForSymbol(symbol).getPrice() * volume;
 		
 		// Check if stock is more than cashInHand
-		if (orderPrice > cashInHand) {
+		if (totalPrice > cashInHand) {
 			throw new StockMarketExpection("Trader does not have enough cash.");
 		}
 		
 		Order theOrder;
-		
 		if (orderType == OrderType.BUY) {
 			theOrder = new BuyOrder(symbol, volume, true, this);
 		} else {
 			theOrder = new SellOrder(symbol, volume, true, this);
 		}
 		
-		// Enter the order into the orderbook of the market
-		m.addOrder(theOrder);
-		
 		// Check if there is an outstanding order for stock
 		if (OrderUtility.isAlreadyPresent(ordersPlaced, theOrder)) {
 			throw new StockMarketExpection("There is already an order for this stock.");
 		}
 		
-		// Check if trader owns the stock 
+		// Check if trader owns the stock if selling
 		if (orderType == OrderType.SELL 
 				&& OrderUtility.owns(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own the stock.");
 		}
 		
-		// Check if trader owns enough of the stock;
+		// Check if trader owns enough of the stock if selling
 		if (orderType == OrderType.SELL 
 				&& volume > OrderUtility.ownedQuantity(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own enough of the stock.");
 		}
+		
+		// Enter the order into the orderbook of the market
+		m.addOrder(theOrder);
+		
+		// Add the order to the orders placed 
+		this.ordersPlaced.add(theOrder);
 	}
 
 	public void tradePerformed(Order o, double matchPrice)
