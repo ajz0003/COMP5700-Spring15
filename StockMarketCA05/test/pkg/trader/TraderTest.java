@@ -2,6 +2,9 @@ package pkg.trader;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +23,8 @@ public class TraderTest {
 	private Market m;
 	private Trader trader1;
 	private Trader trader2;
+	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
 	@Before
     public void setUp() {
@@ -39,7 +44,16 @@ public class TraderTest {
 			e.printStackTrace();
 		}
 		
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		
     }
+	
+	@After
+	public void tearDown() {
+	    System.setOut(null);
+	    System.setErr(null);
+	}
 	
 	@Test
 	public void testTraderInitialize() {
@@ -153,7 +167,27 @@ public class TraderTest {
 	}
 
 	@Test
-	public void testPlaceNewMarketOrder() {
+	public void testPrintTrader() {
+		try {
+			trader1.placeNewOrder(m, "SBUX", 2, 40.0, OrderType.BUY);
+		} catch (StockMarketExpection e) {
+			e.printStackTrace();
+		}
+		
+		trader1.printTrader();
+		
+		String outputString = "Trader Name: John\n";
+		outputString += "=====================\n";
+		outputString += "Cash: 4808.48\n";
+		outputString += "Stocks Owned: \n";
+		outputString += "TWTR\n";
+		outputString += "Stocks Desired: \n";
+		outputString += "Stock: SBUX $40.0 x 2 (Buy)\n";
+		outputString += "+++++++++++++++++++++\n";
+		outputString += "+++++++++++++++++++++\n";
+		
+		assertEquals(outputString, outContent.toString());
+		
 		//fail("Not yet implemented");
 	}
 
