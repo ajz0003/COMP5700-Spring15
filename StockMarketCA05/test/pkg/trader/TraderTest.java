@@ -85,8 +85,6 @@ public class TraderTest {
 	@Test
 	public void testPlaceNewSellOrder() {
 		
-		//for (Order i : trader1.position)
-		    //System.out.println("Order: " + i.getStockSymbol().toString() + " Quantitiy: " + i.getSize());
 		try {
 			trader1.placeNewOrder(m, "TWTR", 2, 97.0, OrderType.SELL);
 		} catch(StockMarketExpection e) {
@@ -188,7 +186,6 @@ public class TraderTest {
 		
 		assertEquals(outputString, outContent.toString());
 		
-		//fail("Not yet implemented");
 	}
 
 	@Test
