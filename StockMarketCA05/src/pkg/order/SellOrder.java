@@ -1,5 +1,12 @@
 package pkg.order;
 
+/**
+ * SellOrder class for CA05
+ * Modified on: 4/2/15
+ * 
+ * Jared Brown & Jonathan Hart (Pair Programming)
+ */
+
 import pkg.exception.StockMarketExpection;
 import pkg.trader.Trader;
 

@@ -1,5 +1,12 @@
 package pkg.order;
 
+/**
+ * BuyOrderTest class for CA05
+ * Created on: 4/5/15
+ * 
+ * Jared Brown & Jonathan Hart (Pair Programming)
+ */
+
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;

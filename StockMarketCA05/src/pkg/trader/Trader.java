@@ -1,5 +1,12 @@
 package pkg.trader;
 
+/**
+ * Trader class for CA05
+ * Modified on: 4/2/15
+ * 
+ * Jared Brown & Jonathan Hart (Pair Programming)
+ */
+
 import java.util.ArrayList;
 
 import pkg.exception.StockMarketExpection;
@@ -41,9 +48,10 @@ public class Trader {
 		// Get total stock price
 		double orderPrice = m.getStockForSymbol(symbol).getPrice();
 		
-		// Check if stock is more than cashInHand
+		// Check if stock order price is more than cashInHand
 		if (orderPrice * volume > cashInHand) {
-			throw new StockMarketExpection("Trader does not have enough cash.");
+			throw new StockMarketExpection("Cannot place buy order for stock: " + symbol 
+					+ " since there is not enough money. Trader: " + this.name);
 		}
 		
 		// Create the order
@@ -74,7 +82,8 @@ public class Trader {
 		
 		// Check if stock is more than cashInHand
 		if (orderType == OrderType.BUY && totalPrice > cashInHand) {
-			throw new StockMarketExpection("Trader does not have enough cash.");
+			throw new StockMarketExpection("Cannot place buy order for stock: " + symbol 
+					+ " since there is not enough money. Trader: " + this.name);
 		}
 		
 		Order theOrder;
@@ -86,19 +95,22 @@ public class Trader {
 		
 		// Check if there is an outstanding order for stock
 		if (OrderUtility.isAlreadyPresent(ordersPlaced, theOrder)) {
-			throw new StockMarketExpection("There is already an order for this stock.");
+			throw new StockMarketExpection("Cannot place order for stock: " + symbol 
+					+ " since there already one in place. Trader: " + this.name);
 		}
 		
 		// Check if trader owns the stock if selling 
 		if (orderType == OrderType.SELL 
 				&& !OrderUtility.owns(position, symbol)) {
-			throw new StockMarketExpection("The trader does not own the stock.");
+			throw new StockMarketExpection("Cannot place sell order for stock: " + symbol 
+					+ " since no stock is currently owned. Trader: " + this.name);
 		}
 		
 		// Check if trader owns enough of the stock if selling
 		if (orderType == OrderType.SELL 
 				&& volume > OrderUtility.ownedQuantity(position, symbol)) {
-			throw new StockMarketExpection("The trader does not own enough of the stock.");
+			throw new StockMarketExpection("Cannot place sell order for stock: " + symbol 
+					+ " since not enough stock is currently owned. Trader: " + this.name);
 		}
 		
 		// Enter the order into the orderbook of the market
@@ -117,7 +129,8 @@ public class Trader {
 		
 		// Check if stock is more than cashInHand
 		if (orderType == OrderType.BUY && totalPrice > cashInHand) {
-			throw new StockMarketExpection("Trader does not have enough cash.");
+			throw new StockMarketExpection("Cannot place buy order for stock: " + symbol 
+					+ " since there is not enough money. Trader: " + this.name);
 		}
 		
 		Order theOrder;
@@ -129,19 +142,22 @@ public class Trader {
 		
 		// Check if there is an outstanding order for stock
 		if (OrderUtility.isAlreadyPresent(ordersPlaced, theOrder)) {
-			throw new StockMarketExpection("There is already an order for this stock.");
+			throw new StockMarketExpection("Cannot place order for stock: " + symbol 
+					+ " since there already one in place. Trader: " + this.name);
 		}
 		
-		// Check if trader owns the stock if selling
+		// Check if trader owns the stock if selling 
 		if (orderType == OrderType.SELL 
 				&& !OrderUtility.owns(position, symbol)) {
-			throw new StockMarketExpection("The trader does not own the stock.");
+			throw new StockMarketExpection("Cannot place sell order for stock: " + symbol 
+					+ " since no stock is currently owned. Trader: " + this.name);
 		}
 		
 		// Check if trader owns enough of the stock if selling
 		if (orderType == OrderType.SELL 
 				&& volume > OrderUtility.ownedQuantity(position, symbol)) {
-			throw new StockMarketExpection("The trader does not own enough of the stock.");
+			throw new StockMarketExpection("Cannot place sell order for stock: " + symbol 
+					+ " since not enough stock is currently owned. Trader: " + this.name);
 		}
 		
 		// Enter the order into the orderbook of the market

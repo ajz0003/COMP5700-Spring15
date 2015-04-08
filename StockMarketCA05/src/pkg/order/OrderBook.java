@@ -1,5 +1,12 @@
 package pkg.order;
 
+/**
+ * OrderBook class for CA05
+ * Modified on: 4/7/15
+ * 
+ * Jared Brown & Jonathan Hart (Pair Programming)
+ */
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -100,10 +107,8 @@ public class OrderBook {
 				
 				for (Order marketOrder : marketOrders) {
 					if (marketOrder instanceof BuyOrder) {
-//						System.out.println("Adding market buy order of " + marketOrder.getSize() + " to running buy total of " + runningBuyTotal);
 						runningBuyTotal += marketOrder.getSize();
 					} else {
-//						System.out.println("Adding market sell order of " + marketOrder.getSize() + " to running sell total of " + runningSellTotal);
 						runningSellTotal += marketOrder.getSize();
 					}
 				}
@@ -143,11 +148,6 @@ public class OrderBook {
 					j--;
 				}
 				
-//				for (int ind = 0; ind < numPrices; ind++) {
-//					System.out.println("cumulative buys at " + Integer.toString(ind) + " = " + Integer.toString(cumulativeBuysPerPrice[ind]));
-//					System.out.println("cumulative sells at " + ind + " = " + Integer.toString(cumulativeSellsPerPrice[ind]));
-//				}
-				
 				// find matching price
 				int delta = Integer.MAX_VALUE;
 				int k = 0, matchingIndex = -1;
@@ -172,7 +172,6 @@ public class OrderBook {
 				}
 			
 				// update stock price in market using observer method (PriceSetter)
-				// TODO: where should these actually be declared/initialize?
 				PriceSetter priceSetter = new PriceSetter();
 				priceSetter.registerObserver(m.getMarketHistory());
 				m.getMarketHistory().setSubject(priceSetter);
