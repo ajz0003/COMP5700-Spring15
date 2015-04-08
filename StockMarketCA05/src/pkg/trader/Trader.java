@@ -116,7 +116,7 @@ public class Trader {
 		double totalPrice = m.getStockForSymbol(symbol).getPrice() * volume;
 		
 		// Check if stock is more than cashInHand
-		if (totalPrice > cashInHand) {
+		if (orderType == OrderType.BUY && totalPrice > cashInHand) {
 			throw new StockMarketExpection("Trader does not have enough cash.");
 		}
 		
@@ -134,7 +134,7 @@ public class Trader {
 		
 		// Check if trader owns the stock if selling
 		if (orderType == OrderType.SELL 
-				&& OrderUtility.owns(position, symbol)) {
+				&& !OrderUtility.owns(position, symbol)) {
 			throw new StockMarketExpection("The trader does not own the stock.");
 		}
 		
@@ -182,8 +182,10 @@ public class Trader {
 			this.cashInHand -= matchPrice * o.getSize();
 			// Update position
 			this.position.add(o);
-			
+
 		}
+		
+		this.ordersPlaced.remove(o);
 	}
 
 	public void printTrader() {

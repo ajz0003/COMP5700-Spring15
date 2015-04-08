@@ -9,6 +9,11 @@ import pkg.stock.Stock;
 public class PriceSetter implements ISubject {
 	List<IObserver> observersList;
 	Stock updatedStock;
+	
+	public PriceSetter() {
+		observersList = null;
+		updatedStock = null;
+	}
 
 	@Override
 	public void registerObserver(IObserver observer) {

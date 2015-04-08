@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
 
+import pkg.exception.StockMarketExpection;
 import pkg.market.Market;
+import pkg.market.api.PriceSetter;
 
 public class OrderBook {
 	Market m;
@@ -64,8 +66,10 @@ public class OrderBook {
 			if (buyOrders.containsKey(stock)) {
 				ArrayList<Order> buying = buyOrders.get(stock);
 				ArrayList<Order> selling = sellOrders.get(stock);
-				TreeMap<Double, ArrayList<Order>> sortedOrders = new TreeMap<Double, ArrayList<Order>>();
 				ArrayList<Order> orders;
+				
+				TreeMap<Double, ArrayList<Order>> sortedOrders = new TreeMap<Double, ArrayList<Order>>();
+				
 				
 				// populate sortedOrders with both buy and sell orders for each price
 				for (Order buyOrder : buying) {
@@ -89,11 +93,131 @@ public class OrderBook {
 					sortedOrders.put(sellOrder.getPrice(), orders);
 				}
 				
+				// handle and remove market orders
+				double marketPrice = m.getStockForSymbol(stock).getPrice();
+				ArrayList<Order> marketOrders = sortedOrders.remove(0.0);
+				int runningBuyTotal = 0, runningSellTotal = 0;
+				
+				for (Order marketOrder : marketOrders) {
+					if (marketOrder instanceof BuyOrder) {
+//						System.out.println("Adding market buy order of " + marketOrder.getSize() + " to running buy total of " + runningBuyTotal);
+						runningBuyTotal += marketOrder.getSize();
+					} else {
+//						System.out.println("Adding market sell order of " + marketOrder.getSize() + " to running sell total of " + runningSellTotal);
+						runningSellTotal += marketOrder.getSize();
+					}
+				}
+				
 				// construct cumulative least favorably price list
+				int numPrices = sortedOrders.size();
+				int[] cumulativeBuysPerPrice = new int[numPrices];
+				int[] cumulativeSellsPerPrice = new int[numPrices];
+				
+				// add up cumulative sell orders at each price
+				int i = 0;
+				for (double price : sortedOrders.keySet()) {
+					ArrayList<Order> ordersAtPrice = sortedOrders.get(price);
+
+					for (Order o : ordersAtPrice) {
+						if (o instanceof SellOrder) {
+							runningSellTotal += o.getSize();
+						}
+					}
+					
+					cumulativeSellsPerPrice[i] = runningSellTotal;
+					i++;
+				}
+				
+				// add up cumulative sell orders at each price
+				int j = numPrices - 1;
+				for (double price : sortedOrders.descendingKeySet()) {
+					ArrayList<Order> ordersAtPrice = sortedOrders.get(price);
+
+					for (Order o : ordersAtPrice) {
+						if (o instanceof BuyOrder) {
+							runningBuyTotal += o.getSize();
+						}
+					}
+					
+					cumulativeBuysPerPrice[j] = runningBuyTotal;
+					j--;
+				}
+				
+//				for (int ind = 0; ind < numPrices; ind++) {
+//					System.out.println("cumulative buys at " + Integer.toString(ind) + " = " + Integer.toString(cumulativeBuysPerPrice[ind]));
+//					System.out.println("cumulative sells at " + ind + " = " + Integer.toString(cumulativeSellsPerPrice[ind]));
+//				}
 				
 				// find matching price
+				int delta = Integer.MAX_VALUE;
+				int k = 0, matchingIndex = -1;
+				double matchingPrice = marketPrice;
 				
+				while (delta > 0 && k < numPrices) {
+					int newDelta = cumulativeBuysPerPrice[k] - cumulativeSellsPerPrice[k];
+					if (newDelta < delta) {
+						delta = newDelta;
+						if (newDelta >= 0) {
+							matchingIndex = k;
+						}
+					}
+					k++;
+				}
+				for (double price : sortedOrders.keySet()) {
+					if (matchingIndex == 0) {
+						matchingPrice = price;
+						break;
+					}
+					matchingIndex--;
+				}
+			
+				// update stock price in market using observer method (PriceSetter)
+				// TODO: where should these actually be declared/initialize?
+				PriceSetter priceSetter = new PriceSetter();
+				priceSetter.registerObserver(m.getMarketHistory());
+				m.getMarketHistory().setSubject(priceSetter);
+				if (matchingPrice != marketPrice) {
+					priceSetter.setNewPrice(m, stock, matchingPrice);
+				}
+				
+				// remove traded orders from orderbook and delegate to trader
+				for (Order marketOrder : marketOrders) { // remove market trades
+					if (marketOrder instanceof BuyOrder) {
+						buyOrders.get(stock).remove(marketOrder);
+					} else {
+						sellOrders.get(stock).remove(marketOrder);
+					}
+					
+					try { // delegate to trader
+						marketOrder.getTrader().tradePerformed(marketOrder, matchingPrice);
+					} catch (StockMarketExpection e) {
+						e.printStackTrace();
+					}
+				}
+				
+				for (double price : sortedOrders.keySet()) { // remove all other executed trades
+					ArrayList<Order> ordersAtPrice = sortedOrders.get(price);
 
+					for (Order o : ordersAtPrice) {
+						if (o instanceof BuyOrder && price >= matchingPrice) {
+							buyOrders.get(stock).remove(o);
+							
+							try { // delegate to trader
+								o.getTrader().tradePerformed(o, matchingPrice);
+							} catch (StockMarketExpection e) {
+								e.printStackTrace();
+							}
+						} else if (o instanceof SellOrder && price <= matchingPrice) {
+							sellOrders.get(stock).remove(o);
+							
+							try { // delegate to trader
+								o.getTrader().tradePerformed(o, matchingPrice);
+							} catch (StockMarketExpection e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
 			}
 		}
 	}
